@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bài 3 - Game Đoán Số</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+      }
+      .game-area {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        margin: 20px 0;
+      }
+      .input-section {
+        margin: 20px 0;
+      }
+      .input-section input {
+        padding: 10px;
+        width: 100px;
+        text-align: center;
+        font-size: 20px;
+        border: 2px solid #667eea;
+        border-radius: 5px;
+        margin: 0 10px;
+      }
+      .message {
+        margin: 20px 0;
+        padding: 15px;
+        border-radius: 5px;
+        font-weight: bold;
+      }
+      .message.high {
+        background: #fed7d7;
+        color: #9b2c2c;
+      }
+      .message.low {
+        background: #c6f6d5;
+        color: #22543d;
+      }
+      .message.correct {
+        background: #e6fffa;
+        color: #234e52;
+      }
+      .history {
+        margin-top: 20px;
+      }
+      .history-item {
+        display: inline-block;
+        margin: 5px;
+        padding: 8px 12px;
+        background: #edf2f7;
+        border-radius: 5px;
+      }
+      .fireworks {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 100;
+        display: none;
+      }
+      .firework {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+      }
+      .explanation {
+        background: white;
+        padding: 20px;
+        margin-top: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        text-align: left;
+      }
+      .explanation h3 {
+        color: #667eea;
+        margin-bottom: 10px;
+      }
+      .explanation ul {
+        padding-left: 20px;
+        margin: 10px 0;
+      }
+      .explanation li {
+        margin-bottom: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a href="index.html" class="btn back-btn">← Trở về trang chủ</a>
+      <h1>Bài 3: Game Đoán Số</h1>
+
+      <div class="game-area">
+        <h2>Đoán số từ 1 đến 100</h2>
+        <p>Nhập số của bạn và nhấn "Đoán" hoặc Enter</p>
+
+        <div class="input-section">
+          <input
+            type="number"
+            id="guessInput"
+            min="1"
+            max="100"
+            placeholder="Số"
+          />
+          <button class="btn" id="guessBtn">Đoán</button>
+          <button class="btn" id="newGameBtn">Game mới</button>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <div>
+          <p>Số lần đoán: <span id="attempts">0</span></p>
+          <p>Số cần đoán: <span id="secretNumber">?</span></p>
+        </div>
+
+        <div class="history" id="history"></div>
+      </div>
+
+      <div class="explanation">
+        <h3>Logic xử lý:</h3>
+        <ul>
+          <li>
+            <strong>Random number:</strong> Math.floor(Math.random() * 100) + 1
+            để tạo số ngẫu nhiên 1-100
+          </li>
+          <li>
+            <strong>Validation:</strong> Kiểm tra input có phải số hợp lệ 1-100,
+            không trùng với lần đoán trước
+          </li>
+          <li>
+            <strong>State management:</strong> Lưu secretNumber, attempts,
+            guessHistory trong biến
+          </li>
+          <li>
+            <strong>Fireworks effect:</strong> Tạo 50 particles với random
+            position, color, animation bằng CSS
+          </li>
+          <li>
+            <strong>Error handling:</strong> Try-catch cho LocalStorage,
+            validate input trước khi xử lý
+          </li>
+        </ul>
+      </div>
+
+      <div class="fireworks" id="fireworks"></div>
+    </div>
+
+    <script>
+      let secretNumber, attempts, guessHistory;
+
+      function initGame() {
+        secretNumber = Math.floor(Math.random() * 100) + 1;
+        attempts = 0;
+        guessHistory = [];
+        updateDisplay();
+        document.getElementById("message").textContent = "Hãy bắt đầu đoán số!";
+        document.getElementById("message").className = "message";
+        document.getElementById("secretNumber").textContent = "?";
+        hideFireworks();
+      }
+
+      function checkGuess() {
+        const input = document.getElementById("guessInput");
+        const guess = parseInt(input.value);
+
+        if (isNaN(guess) || guess < 1 || guess > 100) {
+          alert("Vui lòng nhập số từ 1 đến 100");
+          return;
+        }
+
+        if (guessHistory.includes(guess)) {
+          alert("Bạn đã đoán số này rồi!");
+          return;
+        }
+
+        attempts++;
+        guessHistory.push(guess);
+
+        let message = "",
+          className = "";
+
+        if (guess === secretNumber) {
+          message = `🎉 Chính xác! Bạn đoán đúng sau ${attempts} lần!`;
+          className = "correct";
+          document.getElementById("secretNumber").textContent = secretNumber;
+          showFireworks();
+          saveHighScore();
+        } else if (guess < secretNumber) {
+          message = `📉 Quá thấp! Số ${guess} nhỏ hơn số bí mật`;
+          className = "low";
+        } else {
+          message = `📈 Quá cao! Số ${guess} lớn hơn số bí mật`;
+          className = "high";
+        }
+
+        document.getElementById("message").textContent = message;
+        document.getElementById("message").className = `message ${className}`;
+        updateDisplay();
+        input.value = "";
+        input.focus();
+      }
+
+      function updateDisplay() {
+        document.getElementById("attempts").textContent = attempts;
+
+        const historyDiv = document.getElementById("history");
+        historyDiv.innerHTML = guessHistory
+          .map((guess) => `<span class="history-item">${guess}</span>`)
+          .join(" ");
+      }
+
+      function showFireworks() {
+        const fireworks = document.getElementById("fireworks");
+        fireworks.style.display = "block";
+        fireworks.innerHTML = "";
+
+        for (let i = 0; i < 50; i++) {
+          const firework = document.createElement("div");
+          firework.className = "firework";
+          firework.style.left = `${Math.random() * 100}%`;
+          firework.style.top = `${Math.random() * 100}%`;
+          firework.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
+          firework.style.animation = `fireworkAnim ${1 + Math.random()}s ease-out forwards`;
+          fireworks.appendChild(firework);
+        }
+
+        setTimeout(hideFireworks, 3000);
+      }
+
+      function hideFireworks() {
+        document.getElementById("fireworks").style.display = "none";
+      }
+
+      function saveHighScore() {
+        try {
+          const highScores =
+            JSON.parse(localStorage.getItem("highScores")) || [];
+          highScores.push({ attempts, date: new Date().toLocaleDateString() });
+          highScores.sort((a, b) => a.attempts - b.attempts);
+          localStorage.setItem(
+            "highScores",
+            JSON.stringify(highScores.slice(0, 10)),
+          );
+        } catch (e) {
+          console.log("Không thể lưu high score:", e);
+        }
+      }
+
+      document.getElementById("guessBtn").addEventListener("click", checkGuess);
+      document.getElementById("newGameBtn").addEventListener("click", initGame);
+      document
+        .getElementById("guessInput")
+        .addEventListener("keypress", (e) => {
+          if (e.key === "Enter") checkGuess();
+        });
+
+      initGame();
+
+      // Thêm CSS animation cho pháo hoa
+      const style = document.createElement("style");
+      style.textContent = `
+            @keyframes fireworkAnim {
+                0% { transform: scale(1); opacity: 1; }
+                100% { transform: scale(3); opacity: 0; }
+            }
+        `;
+      document.head.appendChild(style);
+    </script>
+  </body>
+</html>

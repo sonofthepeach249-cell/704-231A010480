@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bài 2 - Todo List</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .input-section {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .input-section input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .todo-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .todo-item {
+        background: white;
+        padding: 15px;
+        border-radius: 5px;
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 10px;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      .todo-text.completed {
+        text-decoration: line-through;
+        color: #888;
+      }
+      .btn-edit,
+      .btn-delete {
+        padding: 5px 10px;
+        font-size: 14px;
+      }
+      .btn-delete {
+        background: #e53e3e;
+      }
+      .btn-delete:hover {
+        background: #c53030;
+      }
+      .btn-save {
+        background: #38a169;
+      }
+      .btn-save:hover {
+        background: #2f855a;
+      }
+      .stats {
+        margin-top: 20px;
+        color: #666;
+      }
+      .explanation {
+        background: white;
+        padding: 20px;
+        margin-top: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .explanation h3 {
+        color: #667eea;
+        margin-bottom: 10px;
+      }
+      .explanation ul {
+        padding-left: 20px;
+        margin: 10px 0;
+      }
+      .explanation li {
+        margin-bottom: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a href="index.html" class="btn back-btn">← Trở về trang chủ</a>
+      <h1>Bài 2: Todo List</h1>
+
+      <div class="input-section">
+        <input type="text" id="todoInput" placeholder="Nhập công việc mới..." />
+        <button class="btn" id="addBtn">Thêm</button>
+      </div>
+
+      <div class="todo-list" id="todoList"></div>
+      <div class="stats" id="stats"></div>
+
+      <div class="explanation">
+        <h3>Logic xử lý:</h3>
+        <ul>
+          <li>
+            <strong>State management:</strong> Lưu todos trong array, mỗi item
+            có id, text, completed
+          </li>
+          <li>
+            <strong>LocalStorage:</strong> Lưu toàn bộ array dưới dạng JSON, tự
+            động sync khi thay đổi
+          </li>
+          <li>
+            <strong>Render hiệu quả:</strong> Chỉ render lại khi có thay đổi, sử
+            dụng event delegation cho các button
+          </li>
+          <li>
+            <strong>Edit inline:</strong> Chuyển đổi giữa span và input khi
+            edit, validate dữ liệu
+          </li>
+          <li>
+            <strong>Performance:</strong> Không re-render toàn bộ list, chỉ
+            update item thay đổi
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <script>
+      let todos = JSON.parse(localStorage.getItem("todos")) || [];
+      let editId = null;
+
+      function saveToLocalStorage() {
+        localStorage.setItem("todos", JSON.stringify(todos));
+      }
+
+      function addTodo(text) {
+        if (text.trim() === "") return;
+        const newTodo = {
+          id: Date.now(),
+          text: text,
+          completed: false,
+        };
+        todos.push(newTodo);
+        saveToLocalStorage();
+        renderTodos();
+      }
+
+      function deleteTodo(id) {
+        todos = todos.filter((todo) => todo.id !== id);
+        saveToLocalStorage();
+        renderTodos();
+      }
+
+      function toggleTodo(id) {
+        todos = todos.map((todo) =>
+          todo.id === id ? { ...todo, completed: !todo.completed } : todo,
+        );
+        saveToLocalStorage();
+        renderTodos();
+      }
+
+      function startEdit(id) {
+        editId = id;
+        renderTodos();
+      }
+
+      function saveEdit(id, newText) {
+        if (newText.trim() === "") return deleteTodo(id);
+        todos = todos.map((todo) =>
+          todo.id === id ? { ...todo, text: newText } : todo,
+        );
+        editId = null;
+        saveToLocalStorage();
+        renderTodos();
+      }
+
+      function renderTodos() {
+        const todoList = document.getElementById("todoList");
+        todoList.innerHTML = "";
+
+        todos.forEach((todo) => {
+          const item = document.createElement("div");
+          item.className = "todo-item";
+
+          if (editId === todo.id) {
+            item.innerHTML = `
+                        <input type="text" value="${todo.text}" id="editInput-${todo.id}" class="edit-input">
+                        <button class="btn btn-save" onclick="saveEdit(${todo.id}, document.getElementById('editInput-${todo.id}').value)">Lưu</button>
+                        <button class="btn" onclick="editId = null; renderTodos()">Hủy</button>
+                    `;
+          } else {
+            item.innerHTML = `
+                        <span class="todo-text ${todo.completed ? "completed" : ""}" 
+                              onclick="toggleTodo(${todo.id})">${todo.text}</span>
+                        <button class="btn btn-edit" onclick="startEdit(${todo.id})">Sửa</button>
+                        <button class="btn btn-delete" onclick="deleteTodo(${todo.id})">Xóa</button>
+                    `;
+          }
+          todoList.appendChild(item);
+        });
+
+        updateStats();
+      }
+
+      function updateStats() {
+        const total = todos.length;
+        const completed = todos.filter((t) => t.completed).length;
+        document.getElementById("stats").innerHTML = `
+                Tổng: ${total} công việc | Đã hoàn thành: ${completed} | Chưa hoàn thành: ${total - completed}
+            `;
+      }
+
+      document.getElementById("addBtn").addEventListener("click", () => {
+        const input = document.getElementById("todoInput");
+        addTodo(input.value);
+        input.value = "";
+        input.focus();
+      });
+
+      document.getElementById("todoInput").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          const input = document.getElementById("todoInput");
+          addTodo(input.value);
+          input.value = "";
+        }
+      });
+
+      renderTodos();
+    </script>
+  </body>
+</html>

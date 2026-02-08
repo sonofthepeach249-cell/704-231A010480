@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Liên hệ - 704-MSSV</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .contact-form {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+      }
+      input,
+      textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .contact-info {
+        margin-top: 30px;
+        padding: 20px;
+        background: #f7fafc;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a href="index.html" class="btn back-btn">← Trở về trang chủ</a>
+      <h1>Liên hệ</h1>
+
+      <div class="contact-form">
+        <h3>Gửi tin nhắn</h3>
+        <form id="contactForm">
+          <div class="form-group">
+            <label for="name">Họ tên:</label>
+            <input type="text" id="name" required />
+          </div>
+          <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" required />
+          </div>
+          <div class="form-group">
+            <label for="message">Nội dung:</label>
+            <textarea id="message" rows="5" required></textarea>
+          </div>
+          <button type="submit" class="btn">Gửi tin nhắn</button>
+        </form>
+
+        <div class="contact-info">
+          <h3>Thông tin liên hệ</h3>
+          <p><strong>MSSV:</strong> 231A010480</p>
+          <p><strong>Họ tên:</strong> Lưu Gia Bảo</p>
+          <p><strong>Email:</strong> luugiabaosn2005@gmail.com</p>
+          <p>
+            <strong>GitHub:</strong>
+            <a href="https://sonofthepeach249-cell.github.io/bai21ltweb/"
+              >https://github.com/username</a
+            >
+          </p>
+          <p>
+            <strong>Website:</strong>
+            <a href="https://username.github.io/704-MSSV/"
+              >https://username.github.io/704-MSSV/</a
+            >
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("contactForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          alert("Tin nhắn đã được gửi! (Demo)");
+          this.reset();
+        });
+    </script>
+  </body>
+</html>
